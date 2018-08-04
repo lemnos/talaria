@@ -1,0 +1,14 @@
+border_sz int 10
+x double -1
+y double -1
+w double -1
+h double -1
+input_separator_height double 5
+input_height double 40
+border_radius double 10
+border_color string #000000cc
+font_family string Serif
+background_color string #000000cc
+foreground_color string #ffffff
+input_separator_color string #000000
+cursor_color string #ffffff

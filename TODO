@@ -1,0 +1,13 @@
+#TODO
+
+Document -p.
+Document config file options.
+Include companion/example scripts for common tasks.
+Add file name completion.
+Flag for toggling regex matching
+Add a help flag
+Include gif demo
+
+#Ideas
+
+https://lifehacker.com/a-beginners-guide-to-mouseless-computing-with-alfred-1596198655

@@ -1,0 +1,55 @@
+* Overview
+
+A 'widget' corresponds to a portion of the canvas which handles input events.
+The notion of a 'canvas' and an 'input event (ui_event)' is abstracted so as
+not to be dependent on specific technologies (e.g X11). Widgets should provide
+a function that returns a ui_widget struct containing the relevant callbacks
+which allow the event loop to harness them. The draw function of a widget
+consumes a cairo context on which it can draw. The event loop code (evloop.c)
+contains the code necessary to actualize the widgets (currently an X11 window).
+In general a widget should consist of an internal data model which gets
+modified when events are handled and a draw function which constructs the
+appropriate image based on the internal widget state. See input.c and menu.c
+for implementation examples.
+
+* Sample Program
+
+#include "common.h"
+#include "evloop.h"
+#include "input.h"
+#include "menu.h"
+#include <X11/Xlib.h>
+
+int main() {
+    Display *dpy = XOpenDisplay(NULL);
+    Window win = XCreateSimpleWindow(dpy,
+            DefaultRootWindow(dpy),
+            0,0,
+            900, 900,
+            1, 0, 0);
+
+    XMapWindow(dpy, win);
+    XFlush(dpy);
+
+    //Create event loop
+    struct ui_evloop *evl = ui_create_evloop(dpy, win);
+
+    //Create an input widget at 20, 20 of width and height 880 and 220.
+    struct ui_widget *input = ui_create_input(20, 20, 880, 20, 
+            (struct ui_color){1,1,1,1},
+            (struct ui_color){0,0,0,1},
+            (struct ui_color){1,1,1,1});
+
+    //Create a menu widget containing the items "item1" and "item2"
+    struct ui_widget *menu = ui_create_menu(20, 40, 880, 830, 
+            30, 30,
+            (struct ui_color){0,0,0,1},
+            (struct ui_color){1,1,1,1},
+            (const char*[]){"item 1", "item 2"},
+            2,
+            NULL);
+
+    ui_evloop_register(evl, input);
+    ui_evloop_register(evl, menu);
+    ui_evloop_run(evl);
+}
