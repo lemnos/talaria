@@ -13,7 +13,7 @@ talaria [-d delim] [-f field] [-m] [-x xoff] [-y yoff] [-w width] [-h height]
 
 # DESCRIPTION
 
-talaria is simple a program which produces a dynammically filterable menu from lines in
+talaria is simple a program which produces a dynamically filterable menu from lines in
 STDIN and prints the chosen option to STDOUT. It is designed to be flexible and
 provides options for controlling menu placement, color themes, and delimeters.
 
