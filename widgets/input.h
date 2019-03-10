@@ -49,6 +49,4 @@ struct ui_widget* ui_create_input(
         const char** history,
         size_t history_sz,
         void(*input_update_cb) (struct ui_input *input_widget, const char *input));
-
-char* ui_input_get_input(struct ui_widget *w);
 #endif

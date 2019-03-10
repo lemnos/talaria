@@ -52,6 +52,6 @@ double ui_draw_text_box(cairo_t *cr,
         const char *_txt,
         int sel_start, int sel_end, int cursor_pos);
 
-double ui_text_width(cairo_t *cr, const int h, const char *txt);
+double ui_text_width(cairo_t *cr, const int h, const char *txt, int n);
 int read_utf8_char(const char *str, char c[5]);
 #endif

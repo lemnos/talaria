@@ -35,13 +35,13 @@ int main() {
     struct ui_evloop *evl = ui_create_evloop(dpy, win);
 
     //Create an input widget at 20, 20 of width and height 880 and 220.
-    struct ui_widget *input = ui_create_input(20, 20, 880, 20, 
+    struct ui_widget *input = ui_create_input(20, 20, 880, 20,
             (struct ui_color){1,1,1,1},
             (struct ui_color){0,0,0,1},
             (struct ui_color){1,1,1,1});
 
     //Create a menu widget containing the items "item1" and "item2"
-    struct ui_widget *menu = ui_create_menu(20, 40, 880, 830, 
+    struct ui_widget *menu = ui_create_menu(20, 40, 880, 830,
             30, 30,
             (struct ui_color){0,0,0,1},
             (struct ui_color){1,1,1,1},

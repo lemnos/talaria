@@ -13,9 +13,12 @@ talaria [-d delim] [-f field] [-m] [-x xoff] [-y yoff] [-w width] [-h height]
 
 # DESCRIPTION
 
-talaria is simple a program which produces a dynamically filterable menu from lines in
-STDIN and prints the chosen option to STDOUT. It is designed to be flexible and
-provides options for controlling menu placement, color themes, and delimeters.
+talaria is a program which produces a simple dynamically filterable menu from
+lines in STDIN and prints the chosen option to STDOUT. It is designed to be
+flexible and provides options for controlling menu placement, color themes, and
+delimeters. The delimeter and field options how talaria should extract the menu
+options it displays during the selection process, the full corresponding line
+from STDIN is printed on STDOUT after the item has been selected.
 
 # OPTIONS
 
@@ -57,3 +60,29 @@ are used to populate the menu history as well as item order.
 
 **-v**
 : Prints version information.
+
+# Config Options
+
+The appearance of talaria is fully configurable and can be modfied by
+overriding the values listed below in **~/.talariarc**.  All non color values
+are numbers which represent pixels. Colors are of the form #XXXXXXXX or #XXXXXX
+the latter is a standard RGB hex color, the former adds a transparency
+dimension (where 0 is transparent and 255 is opaque).
+
+*border_sz*: Thickness of the border in pixels. \
+*x*: X offset. \
+*y*: Y offset. \
+*w*: Width. \
+*h*: Height. \
+*input_separator_height*: The height of the bar between the main input field and the menu options. \
+*input_height*: The height of the input field as well as all menu items (same as unit height). \
+*border_radius*: Border radius. \
+*border_color*: Border color. \
+*background_color*: Background color. \
+*foreground_color*: Foreground color. \
+*input_separator_color*: Input separator. \
+*cursor_color*: Cursor color. \
+*font_family*: Xft font family. \
+*menu_divider_height*: Height of the bar which separates menu items. \
+*menu_sel_background_color*: Background color of the selected menu item. \
+*menu_sel_foreground_color*: Foreground color of the selected menu item.

@@ -18,7 +18,7 @@ struct ui_evloop {
     void (*post_redraw)(cairo_t *cr);
 };
 
-void ui_evloop_register(struct ui_evloop *evl, struct ui_widget* wid);
+void ui_evloop_add_widget(struct ui_evloop *evl, struct ui_widget* wid);
 void ui_evloop_run(struct ui_evloop* evl);
 struct ui_evloop* ui_create_evloop(Display *dpy, Window win);
 char* ui_evloop_get_paste_buffer(struct ui_evloop *loop);

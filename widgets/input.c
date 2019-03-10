@@ -1,6 +1,7 @@
 #include "common.h"
 #include "input.h"
 #include "evloop.h"
+#include "utf8.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <string.h>
@@ -26,44 +27,29 @@ static char *insert(const char *dst, const char *str, size_t pos) {
     return res;
 }
 
-
-//Returns the number of a character at position x as where would be drawn in
-//the given string using the provided cairo context.
-
-static int xth_char(cairo_t *cr, const char *input, const int x, const int h) {
-    size_t i;
-
-    char *tmp = strdup(input);
-
-    for(i=0;i < strlen(input);i++) {
-        strcpy(tmp, input);
-        tmp[i] = '\0';
-        if(ui_text_width(cr, h, tmp) >= x) {
-            return i-1;
-        }
-    }
-
-    free(tmp);
-    return -1;
-}
-
 static void draw(cairo_t *cr, void *_ctx) {
+    int curoff;
+    static int xoff = 0;
     struct ui_input *ctx = _ctx;
-    const int cursor_sz = 1;
-    const int tw = ui_text_width(cr, ctx->h, ctx->input);
 
-    int xoff = tw+cursor_sz > ctx->w ?
-        ctx->x - tw + ctx->w - cursor_sz:
-        ctx->x;
+    if(ctx->cursor_pos == 0)
+        xoff = 0;
+    else {
+        curoff = ui_text_width(cr, ctx->h, ctx->input, ctx->cursor_pos);
+        if(curoff < xoff)
+            xoff = curoff - 2;
+        if(curoff > (xoff + ctx->w))
+            xoff = curoff - ctx->w;
+    }
 
     cairo_save(cr);
 
     cairo_rectangle(cr, ctx->x, ctx->y, ctx->w, ctx->h);
     cairo_clip_preserve(cr);
 
-    xoff = ui_draw_text_box(
+    ui_draw_text_box(
             cr,
-            xoff, ctx->y, 
+            -xoff + ctx->x, ctx->y, 
             ctx->w, ctx->h,
             0,
             &ctx->bgcol,
@@ -76,7 +62,7 @@ static void draw(cairo_t *cr, void *_ctx) {
 static void set_input(struct ui_input *ctx, const char *input) {
     ctx->sel.start = -1;
     ctx->sel.end = -1;
-    ctx->cursor_pos = strlen(input);
+    ctx->cursor_pos = utf8_len(input);
     free(ctx->input);
     ctx->input = strdup(input);
 }
@@ -142,41 +128,26 @@ static void history_down(struct ui_input *ctx) {
 static void delete_char_backward(struct ui_input *ctx) {
     if(!ctx->cursor_pos) return;
 
-    char *start = ctx->input + ctx->cursor_pos - 1;
-    while(((*start & 0xC0) == 0x80) && start != 0)
-        start--;
+    char c[5];
+    const int len = strlen(ctx->input);
+    char *start = ctx->input + utf8_idx(ctx->input, ctx->cursor_pos-1);
+    const int clen = utf8_read(start, c);
 
     memmove(start,
-            ctx->input+ctx->cursor_pos,
-            strlen(ctx->input)-ctx->cursor_pos+1);
+            start + clen,
+            strlen(start + clen));
 
-    ctx->cursor_pos=start-ctx->input;
-}
-
-static void delete_word_backward(struct ui_input *ctx) {
-    if(!ctx->cursor_pos) return;
-    size_t start = ctx->cursor_pos-1;
-    for(;start > 0 && ctx->input[start] == ' ';start--);
-    for(;start > 0 && ctx->input[start] != ' ';start--);
-    if(ctx->input[start] == ' ')
-        start++;
-    memmove(ctx->input+start,
-            ctx->input+ctx->cursor_pos,
-            strlen(ctx->input)-ctx->cursor_pos+1);
-    ctx->cursor_pos = start;
+    ctx->input[len - clen] = '\0';
+    ctx->cursor_pos--;
 }
 
 static void retreat_char(struct ui_input *ctx) {
-    while(ctx->cursor_pos && ((ctx->input[ctx->cursor_pos-1] & 0xC0) == 0x80))
-        ctx->cursor_pos--;
-
-    ctx->cursor_pos = ctx->cursor_pos ? ctx->cursor_pos - 1 : ctx->cursor_pos;
+    ctx->cursor_pos = ctx->cursor_pos == 0 ? 0 : ctx->cursor_pos-1;
 }
 
 static void advance_char(struct ui_input *ctx) {
-    if(ctx->cursor_pos == strlen(ctx->input)) return;
-    char c[5];
-    ctx->cursor_pos += read_utf8_char(ctx->input + ctx->cursor_pos, c);
+    const size_t max = utf8_len(ctx->input);
+    ctx->cursor_pos = ctx->cursor_pos >= max ? max : ctx->cursor_pos+1;
 }
 
 static void move_to_bol(struct ui_input *ctx) {
@@ -186,26 +157,58 @@ static void move_to_bol(struct ui_input *ctx) {
 }
 
 static void move_to_eol(struct ui_input *ctx) {
-    ctx->cursor_pos = strlen(ctx->input);
+    ctx->cursor_pos = utf8_len(ctx->input);
     ctx->sel.start = -1;
     ctx->sel.end = -1;
 }
 
+const char WORD_DELIMS[] = " -./";
+#define INPCH(ctx, n) (ctx->input + utf8_idx(ctx->input, n))
+
 static void advance_word(struct ui_input *ctx) {
-    size_t max = strlen(ctx->input);
-    while(ctx->cursor_pos != max && ctx->input[ctx->cursor_pos] == ' ')
+    size_t max = utf8_len(ctx->input);
+
+    while(ctx->cursor_pos != max &&
+            *INPCH(ctx, ctx->cursor_pos) == ' ')
         ctx->cursor_pos++;
-    while(ctx->cursor_pos != max && ctx->input[ctx->cursor_pos] != ' ')
+
+    if(strchr(WORD_DELIMS, *INPCH(ctx, ctx->cursor_pos))) {
+        if(ctx->cursor_pos != max)
+            ctx->cursor_pos++;
+        return;
+    }
+
+    while(ctx->cursor_pos != max && 
+            !strchr(WORD_DELIMS, *INPCH(ctx, ctx->cursor_pos)))
         ctx->cursor_pos++;
 }
 
 static void retreat_word(struct ui_input *ctx) {
+    while(ctx->cursor_pos != 0 &&
+            *INPCH(ctx, ctx->cursor_pos-1) == ' ')
+        ctx->cursor_pos--;
+
+    if(ctx->cursor_pos && 
+            strchr(WORD_DELIMS, *INPCH(ctx, ctx->cursor_pos-1))) {
+        ctx->cursor_pos--;
+        return;
+    }
+
+
+    while(ctx->cursor_pos && 
+            !strchr(WORD_DELIMS, *INPCH(ctx, ctx->cursor_pos-1)))
+        ctx->cursor_pos--;
+}
+
+static void delete_word_backward(struct ui_input *ctx) {
+    char *start, *end;
     if(!ctx->cursor_pos) return;
 
-    while(ctx->cursor_pos && ctx->input[ctx->cursor_pos-1] == ' ')
-        ctx->cursor_pos--;
-    while(ctx->cursor_pos && ctx->input[ctx->cursor_pos-1] != ' ')
-        ctx->cursor_pos--;
+    start = ctx->input + utf8_idx(ctx->input, ctx->cursor_pos);
+    retreat_word(ctx);
+    end = ctx->input + utf8_idx(ctx->input, ctx->cursor_pos);
+
+    memmove(end, start, strlen(start)+1);
 }
 
 static void add_string(struct ui_input *ctx, const char *str) {
@@ -220,9 +223,9 @@ static void add_string(struct ui_input *ctx, const char *str) {
     }
 
     tmp = ctx->input;
-    ctx->input = insert(ctx->input, str, ctx->cursor_pos);
+    ctx->input = insert(ctx->input, str, utf8_idx(ctx->input, ctx->cursor_pos));
     free(tmp);
-    ctx->cursor_pos+=strlen(str);
+    ctx->cursor_pos += utf8_len(str);
 }
 
 //Returns non zero if the associated cairo context is updated.o
@@ -230,8 +233,6 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
     struct ui_input* ctx = _ctx;
     int redraw = 0;
     switch(ev->type) { 
-        int i, start, end;
-
         case KEYBOARD_EV:
         if(ev->key.ctrl && !strcmp(ev->key.sym, "a")) {
             ctx->sel.start = 0;
@@ -249,9 +250,7 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
         } else if(ev->key.ctrl && !strcmp(ev->key.sym, "u")) {
             set_input(ctx, "");
         } else if(ev->key.ctrl && !strcmp(ev->key.sym, "e")) {
-            ctx->sel.start = -1;
-            ctx->sel.end = -1;
-            ctx->cursor_pos = strlen(ctx->input);
+            move_to_eol(ctx);
         } else if((ev->key.ctrl || ev->key.alt) && (!strcmp(ev->key.sym, "\x08") || !strcmp(ev->key.sym, "w"))) {
             delete_word_backward(ctx);
         } else if(!strcmp(ev->key.sym, "\x08")) {
@@ -302,27 +301,7 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
         ctx->last_input = strdup(ctx->input);
         break;
         case MOUSE_CLICK:
-        i = xth_char(ev->cr, ctx->input, ev->x - ctx->x, ctx->h);
-
-        if(i == -1) {
-            ctx->sel.start = -1;
-            ctx->sel.end = -1;
-            redraw = 1;
-        } else if(ctx->input[i] == ' ') 
-            return 0;
-        else {
-            for(start = i;
-                    start != 0 && ctx->input[start-1] != ' ';
-                    start--);
-            for(end = i;
-                    end != (int)strlen(ctx->input)-1 && ctx->input[end+1] != ' ';
-                    end++);
-
-            ctx->sel.start = start;
-            ctx->sel.end = end;
-
-            redraw = 1;
-        }
+        //TODO maybe implement
         break;
         case TIME_UPDATE:
         break;
@@ -336,10 +315,6 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
     }
 
     return redraw;
-}
-
-char* ui_input_get_input(struct ui_widget *w) {
-    return ((struct ui_input*)w->ctx)->input;
 }
 
 struct ui_widget* ui_create_input(

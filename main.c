@@ -273,7 +273,7 @@ static void redraw_chrome(cairo_t *cr) {
     cairo_select_font_face(cr,
             cfg->font_family,
             CAIRO_FONT_SLANT_NORMAL,
-            CAIRO_FONT_WEIGHT_NORMAL); 
+            CAIRO_FONT_WEIGHT_NORMAL);
 }
 
 static void on_select(struct ui_menu *_, int idx) {
@@ -337,7 +337,7 @@ size_t file_item_completion(const char *prefix, const char *str, char ***results
     const char *end = NULL;
     const char *partial = "";
     for(const char *c=str;*c;c++)
-        if(*c == '/') 
+        if(*c == '/')
             end = c;
 
     if(!end) return 0;
@@ -356,8 +356,8 @@ size_t file_item_completion(const char *prefix, const char *str, char ***results
 
     sz = 0;
     while((ent=readdir(dh)))
-        if(strstr(ent->d_name, partial) == ent->d_name && 
-                strcmp(".", ent->d_name) && 
+        if(strstr(ent->d_name, partial) == ent->d_name &&
+                strcmp(".", ent->d_name) &&
                 strcmp("..", ent->d_name)) {
             (*results)[sz] = malloc(PATH_MAX + prefix_len);
             snprintf((*results)[sz], PATH_MAX+prefix_len+2,
@@ -405,7 +405,7 @@ size_t completion_fn(const char *_str, char ***results) {
 }
 
 void init_ui(Display *dpy, Window win, char **history, size_t history_sz) {
-    struct ui_color 
+    struct ui_color
         fgcol,
         bgcol,
         selbgcol,
@@ -426,8 +426,8 @@ void init_ui(Display *dpy, Window win, char **history, size_t history_sz) {
     input = ui_create_input(
             evloop,
             cfg->border_sz, cfg->border_sz,
-            cfg->w-cfg->border_sz*2, cfg->input_height, 
-            cursor_color, bgcol, fgcol, 
+            cfg->w-cfg->border_sz*2, cfg->input_height,
+            cursor_color, bgcol, fgcol,
             completion_fn,
             (const char**)history, history_sz,
             on_input_update);
@@ -445,8 +445,8 @@ void init_ui(Display *dpy, Window win, char **history, size_t history_sz) {
             on_select);
 
     //TODO cleanup evloop code.
-    ui_evloop_register(evloop, input);
-    ui_evloop_register(evloop, menu);
+    ui_evloop_add_widget(evloop, input);
+    ui_evloop_add_widget(evloop, menu);
     on_input_update(input->ctx, "");
 }
 

@@ -30,7 +30,7 @@ static int on_event(void *_ctx, struct ui_event *ev) {
             ctx->sel = ctx->sel >= ctx->items_sz-1 ?
                 ctx->items_sz-1 :
                 ctx->sel+1;
-            scroll_item_into_view(ctx); 
+            scroll_item_into_view(ctx);
         } else if (!strcmp(ev->key.sym, "<page_up>")) {
             ctx->scroll_top -= ctx->h;
             ctx->scroll_top = ctx->scroll_top < 0 ? 0 : ctx->scroll_top;

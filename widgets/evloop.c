@@ -151,7 +151,7 @@ char* ui_evloop_get_paste_buffer(struct ui_evloop *loop) {
     return x11_get_primary_selection(loop->dpy, loop->win);
 }
 
-void ui_evloop_register(struct ui_evloop *evl, struct ui_widget* wid) {
+void ui_evloop_add_widget(struct ui_evloop *evl, struct ui_widget* wid) {
     assert(evl->widgets_sz != MAX_WIDGETS);
     evl->widgets[evl->widgets_sz++] = wid;
 }
