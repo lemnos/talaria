@@ -95,7 +95,7 @@ double ui_draw_text_box(cairo_t *cr,
         cairo_text_extents (cr, chr, &te);
         w = chr[0] == ' ' ? space_width : te.x_advance;
 
-        if(c-_txt >= (int)sel_start && c-_txt <= (int)sel_end) {
+        if(idx >= (int)sel_start && idx <= (int)sel_end) {
             cairo_set_source_rgba (cr, fgcol->r, fgcol->g, fgcol->b, bgcol->a);
             cairo_rectangle(cr, xoff, y, w, h);
             cairo_fill(cr);

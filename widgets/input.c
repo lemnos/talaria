@@ -8,7 +8,9 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-//TODO properly implement selection and mouse support (maybe).
+/* TODO 
+ * - Implement mouse support (maybe).
+*/
 
 static char *insert(const char *dst, const char *str, size_t pos) {
     const size_t lstr = str ? strlen(str) : 0;
@@ -54,7 +56,9 @@ static void draw(cairo_t *cr, void *_ctx) {
             0,
             &ctx->bgcol,
             &ctx->fgcol,
-            ctx->input, ctx->sel.start, ctx->sel.end, ctx->show_cursor ? (int)ctx->cursor_pos : -1);
+            ctx->input,
+            ctx->sel.start, ctx->sel.end,
+            ctx->show_cursor ? (int)ctx->cursor_pos : -1);
 
     cairo_restore(cr);
 }
@@ -200,6 +204,18 @@ static void retreat_word(struct ui_input *ctx) {
         ctx->cursor_pos--;
 }
 
+static void select_prev_word(struct ui_input *ctx) {
+    ctx->sel.end = ctx->sel.end == -1 ? ctx->cursor_pos-1 : ctx->sel.end;
+    retreat_word(ctx);
+    ctx->sel.start = ctx->cursor_pos;
+}
+
+static void select_next_word(struct ui_input *ctx) {
+    ctx->sel.start = ctx->sel.start == -1 ? ctx->cursor_pos : ctx->sel.start;
+    advance_word(ctx);
+    ctx->sel.end = ctx->cursor_pos-1;
+}
+
 static void delete_word_backward(struct ui_input *ctx) {
     char *start, *end;
     if(!ctx->cursor_pos) return;
@@ -211,16 +227,24 @@ static void delete_word_backward(struct ui_input *ctx) {
     memmove(end, start, strlen(start)+1);
 }
 
+static void delete_selection(struct ui_input *ctx) {
+        const char *start, *end;
+
+        ctx->cursor_pos = ctx->sel.start;
+        start = ctx->input + utf8_idx(ctx->input, ctx->sel.start);
+        end = ctx->input + utf8_idx(ctx->input, ctx->sel.end+1);
+
+        memcpy(start, end, strlen(end)+1);
+
+        ctx->sel.start = -1;
+        ctx->sel.end = -1;
+}
+    
 static void add_string(struct ui_input *ctx, const char *str) {
     char *tmp;
 
-    if(ctx->sel.end != -1) {
-        ctx->sel.start = -1;
-        ctx->sel.end = -1;
-        ctx->cursor_pos = 0;
-        if(ctx->input)
-            ctx->input[0] = '\0';
-    }
+    if(ctx->sel.end != -1)
+        delete_selection(ctx);
 
     tmp = ctx->input;
     ctx->input = insert(ctx->input, str, utf8_idx(ctx->input, ctx->cursor_pos));
@@ -236,7 +260,7 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
         case KEYBOARD_EV:
         if(ev->key.ctrl && !strcmp(ev->key.sym, "a")) {
             ctx->sel.start = 0;
-            ctx->sel.end = (int)strlen(ctx->input);
+            ctx->sel.end = utf8_len(ctx->input)-1;
         } else if(!strcmp(ev->key.sym, "\t")) {
             complete(ctx);
         } else if(!strcmp(ev->key.sym, "⇤")) { //backtab
@@ -253,12 +277,17 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
             move_to_eol(ctx);
         } else if((ev->key.ctrl || ev->key.alt) && (!strcmp(ev->key.sym, "\x08") || !strcmp(ev->key.sym, "w"))) {
             delete_word_backward(ctx);
-        } else if(!strcmp(ev->key.sym, "\x08")) {
+        } else if(!strcmp(ev->key.sym, "\x08")) { //Backspace
             if(ctx->sel.end != -1)
-                set_input(ctx, "");
+                delete_selection(ctx);
             else
                 delete_char_backward(ctx);
-        }
+        } else if(ev->key.ctrl && ev->key.shift &&
+                !strcmp(ev->key.sym, "<left>"))
+            select_prev_word(ctx);
+        else if(ev->key.ctrl && ev->key.shift &&
+                !strcmp(ev->key.sym, "<right>"))
+            select_next_word(ctx);
         else if((ev->key.alt && !strcmp(ev->key.sym, "b")) || (ev->key.ctrl && !strcmp(ev->key.sym, "<left>")))
             retreat_word(ctx);
         else if((ev->key.alt && !strcmp(ev->key.sym, "f")) || (ev->key.ctrl && !strcmp(ev->key.sym, "<right>")))

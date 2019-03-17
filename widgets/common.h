@@ -21,14 +21,12 @@ struct ui_event {
     int x;
     int y;
     int click;
-    int ctrl;
-    int alt;
-    int shift;
     long time; //In ms
     struct ui_key {
         char sym[256];
         int ctrl;
         int alt;
+        int shift;
     } key;
     cairo_t *cr;
 };

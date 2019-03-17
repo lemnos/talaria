@@ -67,6 +67,7 @@ static struct ui_event* create_event(XEvent *xev, cairo_t *cr) {
             ev->type = KEYBOARD_EV;
             ev->key.ctrl = ((XKeyEvent*)xev)->state & ControlMask;
             ev->key.alt = ((XKeyEvent*)xev)->state & Mod1Mask;
+            ev->key.shift = ((XKeyEvent*)xev)->state & ShiftMask;
             shift = ((XKeyEvent*)xev)->state & ShiftMask;
 
             switch(sym) {
