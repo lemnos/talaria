@@ -1,4 +1,5 @@
 #include "common.h"
+#include "draw.h"
 #include "input.h"
 #include "evloop.h"
 #include "utf8.h"
@@ -37,7 +38,13 @@ static void draw(cairo_t *cr, void *_ctx) {
     if(ctx->cursor_pos == 0)
         xoff = 0;
     else {
-        curoff = ui_text_width(cr, ctx->h, ctx->input, ctx->cursor_pos);
+        const char *s = utf8_dup(ctx->input, ctx->cursor_pos);
+        curoff = cairo_text_box_width(cr,
+                ctx->fonts,
+                s,
+                ctx->h);
+        free(s);
+
         if(curoff < xoff)
             xoff = curoff - 2;
         if(curoff > (xoff + ctx->w))
@@ -49,16 +56,21 @@ static void draw(cairo_t *cr, void *_ctx) {
     cairo_rectangle(cr, ctx->x, ctx->y, ctx->w, ctx->h);
     cairo_clip_preserve(cr);
 
-    ui_draw_text_box(
-            cr,
+    cairo_rectangle(cr, ctx->x, ctx->y, ctx->w, ctx->h);
+    cairo_set_source_rgb(cr, 0,0,0);
+    cairo_fill(cr);
+
+    cairo_text_box(cr, ctx->fonts, ctx->input, 
             -xoff + ctx->x, ctx->y, 
-            ctx->w, ctx->h,
-            0,
-            &ctx->bgcol,
-            &ctx->fgcol,
-            ctx->input,
-            ctx->sel.start, ctx->sel.end,
-            ctx->show_cursor ? (int)ctx->cursor_pos : -1);
+            ctx->h,
+            ctx->cursor_pos,
+            ctx->sel.start,
+            ctx->sel.end,
+            (double[]){ctx->fgcol.r, ctx->fgcol.g, ctx->fgcol.b, ctx->fgcol.a},
+            (double[]){ctx->bgcol.r, ctx->bgcol.g, ctx->bgcol.b, ctx->bgcol.a},
+			ctx->show_cursor ?
+				(double[]){ctx->fgcol.r, ctx->fgcol.g, ctx->fgcol.b, ctx->fgcol.a} :
+				(double[]){ctx->bgcol.r, ctx->bgcol.g, ctx->bgcol.b, ctx->bgcol.a});
 
     cairo_restore(cr);
 }
@@ -205,13 +217,13 @@ static void retreat_word(struct ui_input *ctx) {
 }
 
 static void select_prev_word(struct ui_input *ctx) {
-    ctx->sel.end = ctx->sel.end == -1 ? ctx->cursor_pos-1 : ctx->sel.end;
+    ctx->sel.end = ctx->sel.end == -1 ? (ssize_t)ctx->cursor_pos-1 : ctx->sel.end;
     retreat_word(ctx);
     ctx->sel.start = ctx->cursor_pos;
 }
 
 static void select_next_word(struct ui_input *ctx) {
-    ctx->sel.start = ctx->sel.start == -1 ? ctx->cursor_pos : ctx->sel.start;
+    ctx->sel.start = ctx->sel.start == -1 ? (int)ctx->cursor_pos : ctx->sel.start;
     advance_word(ctx);
     ctx->sel.end = ctx->cursor_pos-1;
 }
@@ -228,7 +240,7 @@ static void delete_word_backward(struct ui_input *ctx) {
 }
 
 static void delete_selection(struct ui_input *ctx) {
-        const char *start, *end;
+        char *start, *end;
 
         ctx->cursor_pos = ctx->sel.start;
         start = ctx->input + utf8_idx(ctx->input, ctx->sel.start);
@@ -293,14 +305,18 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
         else if((ev->key.alt && !strcmp(ev->key.sym, "f")) || (ev->key.ctrl && !strcmp(ev->key.sym, "<right>")))
             advance_word(ctx);
         else if((ev->key.ctrl && !strcmp(ev->key.sym, "f")) || !strcmp(ev->key.sym, "<right>"))
-            if(ctx->sel.start != -1)
-                move_to_eol(ctx);
-            else
+            if(ctx->sel.start != -1) {
+                ctx->cursor_pos = ctx->sel.end + 1;
+                ctx->sel.start = -1;
+                ctx->sel.end = -1;
+             } else
                 advance_char(ctx);
         else if((ev->key.ctrl && !strcmp(ev->key.sym, "b")) || !strcmp(ev->key.sym, "<left>"))
-            if(ctx->sel.start != -1)
-                move_to_bol(ctx);
-            else
+            if(ctx->sel.start != -1) {
+                ctx->cursor_pos = ctx->sel.start;
+                ctx->sel.start = -1;
+                ctx->sel.end = -1;
+            } else
                 retreat_char(ctx);
         else if(ev->key.alt && (!strcmp(ev->key.sym, "<up>") || !strcmp(ev->key.sym, "p")))
             history_up(ctx);
@@ -348,6 +364,7 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
 
 struct ui_widget* ui_create_input(
         struct ui_evloop* loop,
+        FcFontSet *fonts,
         double x,
         double y,
         double w,
@@ -367,6 +384,7 @@ struct ui_widget* ui_create_input(
     ctx->y = y;
     ctx->w = w;
     ctx->h = h;
+    ctx->fonts = fonts;
 
     ctx->cursor_color = cursor_color;
     ctx->fgcol = fgcol;

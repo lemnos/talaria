@@ -2,6 +2,7 @@
 #define _UI_INPUT_H_
 #include "common.h"
 #include <stdlib.h>
+#include <fontconfig/fontconfig.h>
 
 struct ui_input {
     cairo_t *cr;
@@ -27,17 +28,19 @@ struct ui_input {
     int last_completion_idx;
 
     struct {
-        int start;
-        int end;
+        ssize_t start;
+        ssize_t end;
     } sel;
     size_t cursor_pos;
 
+    FcFontSet *fonts;
     struct ui_key last_key;
     char *input, *last_input;
 };
 
 struct ui_widget* ui_create_input(
         struct ui_evloop* loop,
+        FcFontSet *fonts,
         double x,
         double y,
         double w,

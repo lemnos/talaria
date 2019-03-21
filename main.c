@@ -18,6 +18,7 @@
 #include "x11.h"
 #include "cfg.h"
 #include "widgets/evloop.h"
+#include "widgets/draw.h"
 #include "widgets/menu.h"
 #include "widgets/input.h"
 #include "filters/stdin.h"
@@ -269,11 +270,6 @@ static void redraw_chrome(cairo_t *cr) {
     }
 
     draw_border(cr, cfg->w, wh, cfg->border_sz, cfg->border_radius, border_color);
-
-    cairo_select_font_face(cr,
-            cfg->font_family,
-            CAIRO_FONT_SLANT_NORMAL,
-            CAIRO_FONT_WEIGHT_NORMAL);
 }
 
 static void on_select(struct ui_menu *_, int idx) {
@@ -412,6 +408,7 @@ void init_ui(Display *dpy, Window win, char **history, size_t history_sz) {
         selfgcol,
         cursor_color,
         border_color;
+
     int menu_item_height = cfg->input_height;
 
     fgcol = color_from_string(cfg->foreground_color);
@@ -425,6 +422,7 @@ void init_ui(Display *dpy, Window win, char **history, size_t history_sz) {
     evloop->pre_redraw = redraw_chrome;
     input = ui_create_input(
             evloop,
+            fc_get_fonts("Inconsolata"), //FIXME
             cfg->border_sz, cfg->border_sz,
             cfg->w-cfg->border_sz*2, cfg->input_height,
             cursor_color, bgcol, fgcol,
@@ -434,6 +432,7 @@ void init_ui(Display *dpy, Window win, char **history, size_t history_sz) {
 
     menu = ui_create_menu(
             evloop,
+            fc_get_fonts("Inconsolata"), //FIXME
             cfg->border_sz, cfg->input_height + cfg->border_sz + cfg->input_separator_height,
             cfg->w-cfg->border_sz*2, 400,
             menu_item_height * 0.75,

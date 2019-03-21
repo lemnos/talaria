@@ -1,6 +1,7 @@
 #ifndef _UI_COMMON_H_
 #define _UI_COMMON_H_
 #include <cairo/cairo.h>
+#include <stdlib.h>
 
 struct ui_color {
     double r;
@@ -39,17 +40,4 @@ struct ui_widget {
     void (*redraw) (cairo_t *cr, void *ctx);
 };
 
-double ui_draw_text_box(cairo_t *cr,
-        const int x,
-        const int y,
-        const int w,
-        const int h,
-        const int padding,
-        struct ui_color *bgcol,
-        struct ui_color *fgcol,
-        const char *_txt,
-        int sel_start, int sel_end, int cursor_pos);
-
-double ui_text_width(cairo_t *cr, const int h, const char *txt, int n);
-int read_utf8_char(const char *str, char c[5]);
 #endif

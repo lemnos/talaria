@@ -1,5 +1,6 @@
 #include "common.h"
 #include "menu.h"
+#include "draw.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -92,16 +93,16 @@ static void draw(cairo_t *cr, void *_ctx) {
                 ctx->w, ctx->item_height);
         cairo_fill(cr);
 
-        ui_draw_text_box(cr,
-                ctx->x + 5,
-                y + (ctx->item_height - ctx->font_height)/2,
-                ctx->w,
-                ctx->font_height,
-                0,
-                &(struct ui_color){0,0,0,0},
-                &fgcol,
+        cairo_text_box(cr,
+                ctx->fonts,
                 ctx->items[i],
-                -1,-1, -1);
+                ctx->x+5,
+                y + (ctx->item_height - ctx->font_height)/2,
+                ctx->font_height,
+                -1,-1,-1,
+                (double[]){fgcol.r,fgcol.g,fgcol.b, 255},
+                (double[]){bgcol.r,bgcol.g,bgcol.b, 0},
+                (double[]){fgcol.r,fgcol.g,fgcol.b, 0});
 
         yoff += ctx->item_height;
 
@@ -141,6 +142,7 @@ void ui_menu_set_items(struct ui_widget *_ctx, char **items, size_t items_sz) {
 
 struct ui_widget* ui_create_menu(
         struct ui_evloop *loop,
+        FcFontSet *fonts,
         double x,
         double y,
         double w,
@@ -172,6 +174,7 @@ struct ui_widget* ui_create_menu(
     ctx->items = items;
     ctx->items_sz = items_sz;
     ctx->selection_callback = selection_callback;
+    ctx->fonts = fonts;
 
     ctx->font_height = font_height;
     ctx->item_height = item_height;

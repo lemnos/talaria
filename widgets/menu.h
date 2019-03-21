@@ -1,6 +1,7 @@
 #ifndef _UI_MENU_H_
 #define _UI_MENU_H_
 #include <stdlib.h>
+#include <fontconfig/fontconfig.h>
 #include "common.h"
 
 struct ui_menu {
@@ -22,6 +23,7 @@ struct ui_menu {
     struct ui_color selfgcol;
     struct ui_color selbgcol;
 
+	FcFontSet *fonts;
     int force_redraw;
     int scroll_top; //Number of vertically hidden pixels
     size_t sel; //Index of the selected item
@@ -33,6 +35,7 @@ void ui_menu_set_items(struct ui_widget *_ctx, char **items, size_t items_sz);
 
 struct ui_widget* ui_create_menu(
         struct ui_evloop *loop,
+        FcFontSet *fonts,
         double x,
         double y,
         double w,
