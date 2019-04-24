@@ -87,22 +87,17 @@ static void draw(cairo_t *cr, void *_ctx) {
 
         const int y = ctx->y - scroll_off + yoff;
 
-        cairo_set_source_rgba(cr, bgcol.r, bgcol.g, bgcol.b, bgcol.a);
-        cairo_rectangle(cr,
-                ctx->x, y,
-                ctx->w, ctx->item_height);
-        cairo_fill(cr);
-
         cairo_text_box(cr,
                 ctx->fonts,
                 ctx->items[i],
-                ctx->x+5,
-                y + (ctx->item_height - ctx->font_height)/2,
-                ctx->font_height,
+                ctx->x,
+                y,
+                ctx->w,
+                ctx->item_height,
                 -1,-1,-1,
-                (double[]){fgcol.r,fgcol.g,fgcol.b, 255},
-                (double[]){bgcol.r,bgcol.g,bgcol.b, 0},
-                (double[]){fgcol.r,fgcol.g,fgcol.b, 0});
+                (double[]){fgcol.r,fgcol.g,fgcol.b, fgcol.a},
+                (double[]){bgcol.r,bgcol.g,bgcol.b, bgcol.a},
+                (double[]){fgcol.r,fgcol.g,fgcol.b, fgcol.a});
 
         yoff += ctx->item_height;
 

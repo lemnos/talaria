@@ -314,7 +314,8 @@ static void on_select(struct ui_menu *_, int idx) {
 
     XUnmapWindow(dpy, win);
     XFlush(dpy);
-    printf("%.*s\n", sz, sel);
+    write(1, sel, sz); //printf ignores \0 even when sz is specified.
+    write(1, "\n", 1);
     exit(1);
 }
 

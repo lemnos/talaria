@@ -122,7 +122,7 @@ size_t stdin_filter_select(char *sel, char **result) {
     for(size_t i = 0; i < input_lines_sz;i++)
         if(!strcmp(menu_items[i], sel)) {
             *result = input_lines[i].bytes;
-            return input_lines[i].sz;
+            return input_lines[i].sz - 1; //sz includes the terminating NULL byte
         }
 
     *result = sel;

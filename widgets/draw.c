@@ -60,6 +60,7 @@ static void set_cairo_font(cairo_t *cr, FcPattern *font, int height, cairo_font_
     if(_fe) *_fe = fe;
 }
 
+/* Number of width required by the characters drawn with the given fontset. */
 double cairo_text_box_width(cairo_t *cr, FcFontSet *fonts, const char *s, int height) {
     size_t w = CURSOR_WIDTH; //Init val == cursor width
     size_t idx = 0;
@@ -71,6 +72,11 @@ double cairo_text_box_width(cairo_t *cr, FcFontSet *fonts, const char *s, int he
 
         s += utf8_read(s, c);
         font = get_font_with_char(fonts, c);
+        if(!font) {
+            strcpy(c, "\uFFFD");
+            font = get_font_with_char(fonts, c);
+        }
+
         set_cairo_font(cr, font, height, NULL);
 
         cairo_text_extents(cr, c, &te);
@@ -87,6 +93,7 @@ void cairo_text_box(cairo_t *cr,
 	const char *s,
 	double x,
 	double y,
+	double width,
 	double height,
     size_t curpos,
     int selstart,
@@ -94,6 +101,8 @@ void cairo_text_box(cairo_t *cr,
     double fgcol[4],
     double bgcol[4],
     double curcol[4]) {
+    cairo_new_path(cr);
+
     int idx = 0;
     double xoff = x;
 
@@ -112,6 +121,13 @@ void cairo_text_box(cairo_t *cr,
 
         s += utf8_read(s, c);
         font = get_font_with_char(fonts, c);
+
+        //Glyph not found in the given font set.
+        if(!font) {
+            strcpy(c, "\uFFFD"); //Unknown char unicode code point
+            font = get_font_with_char(fonts, c);
+        }
+
         set_cairo_font(cr, font, height, &fe);
 
         cairo_text_extents(cr, c, &te);
@@ -139,5 +155,10 @@ void cairo_text_box(cairo_t *cr,
         cairo_set_source_rgba(cr, curcol[0],curcol[1],curcol[2],curcol[3]);
         cairo_rectangle(cr, xoff, y, 1, height);
         cairo_fill(cr);
+        xoff += 1;
     }
+
+    cairo_set_source_rgba(cr, bgcol[0],bgcol[1],bgcol[2],bgcol[3]);
+    cairo_rectangle(cr, xoff, y, width - (xoff-x), height);
+    cairo_fill(cr);
 }

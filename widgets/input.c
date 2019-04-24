@@ -56,12 +56,9 @@ static void draw(cairo_t *cr, void *_ctx) {
     cairo_rectangle(cr, ctx->x, ctx->y, ctx->w, ctx->h);
     cairo_clip_preserve(cr);
 
-    cairo_rectangle(cr, ctx->x, ctx->y, ctx->w, ctx->h);
-    cairo_set_source_rgb(cr, 0,0,0);
-    cairo_fill(cr);
-
     cairo_text_box(cr, ctx->fonts, ctx->input, 
             -xoff + ctx->x, ctx->y, 
+            ctx->w + xoff,
             ctx->h,
             ctx->cursor_pos,
             ctx->sel.start,
