@@ -4,7 +4,7 @@ CFLAGS=-g -Wno-error=switch -Wno-error=unused-parameter -pedantic -Wall -Wextra 
 
 all:
 	-mkdir bin
-	gcc -DVERSION=\"$(VERSION)\" ${LDFLAGS} ${CFLAGS} -DGIT_HASH=\"$$(git show-ref -s HEAD)\" -o bin/talaria filters/*.c widgets/*.c *.c 
+	gcc -DVERSION=\"$(VERSION)\" ${LDFLAGS} ${CFLAGS} -DGIT_HASH=\"$$(git rev-parse HEAD)\" -o bin/talaria filters/*.c widgets/*.c *.c 
 man:
 	pandoc -s -t man man.md|gzip > talaria.1.gz
 install:

@@ -130,6 +130,7 @@ size_t stdin_filter_select(char *sel, char **result) {
 }
 
 size_t stdin_filter_filter(const char *input, char ***_items) {
+    size_t j = 0;
     size_t sz = 0;
     static char **results = NULL;
 
@@ -153,6 +154,14 @@ size_t stdin_filter_filter(const char *input, char ***_items) {
     for(size_t i = 0;i < input_lines_sz;i++)
         if(strstr(menu_items[i], input))
             results[sz++] = menu_items[i];
+
+    //Prioritize items for which the input is a prefix.
+    for(size_t i=0;i<sz;i++)
+        if(strstr(results[i], input) == results[i]) {
+            char *tmp = results[i];
+            results[i] = results[j];
+            results[j++] = tmp;
+        }
 
     *_items = results;
     return sz;
