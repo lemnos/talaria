@@ -32,7 +32,7 @@ from STDIN is printed on STDOUT after the item has been selected.
 : Do not allow arbitrary input (which is possible by default) (mnemonic *m*andatory)
 
 **-r**
-: Matching interpretes the input as a regular expression.
+: Matching interprets the input as a regular expression.
 
 **-x** *xoff*
 : The x offset of the talaria window, this overrides whatever is in the config file if specified.

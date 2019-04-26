@@ -330,7 +330,8 @@ size_t file_item_completion(const char *prefix, const char *str, char ***results
     size_t sz;
     struct dirent *ent;
     DIR *dh;
-    char *dir=malloc(strlen(str)+2);
+    char dir[PATH_MAX];
+
     const char *end = NULL;
     const char *partial = "";
     for(const char *c=str;*c;c++)
@@ -339,9 +340,16 @@ size_t file_item_completion(const char *prefix, const char *str, char ***results
 
     if(!end) return 0;
 
-    dir = memcpy(dir, str, end-str+1);
+    memcpy(dir, str, end-str+1);
     dir[end-str+1] = '\0';
     partial = end+1;
+
+    if (strstr(dir, "~/") == dir) {
+        char tmp[PATH_MAX];
+        const char *home = getenv("HOME");
+        sprintf(tmp, "%s/%s", home, dir+2);
+        strcpy(dir, tmp);
+    }
 
     if(!(dh = opendir(dir)))
         return 0;
