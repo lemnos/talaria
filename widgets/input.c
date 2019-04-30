@@ -274,7 +274,7 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
             complete(ctx);
         } else if(!strcmp(ev->key.sym, "⇤")) { //backtab
             backward_complete(ctx);
-        } else if(!strcmp(ev->key.sym, "<paste>") || (ev->key.ctrl && !strcmp(ev->key.sym, "v"))) {
+        } else if(!strcmp(ev->key.sym, "<paste>") || (ev->key.ctrl && !strcmp(ev->key.sym, "v")) || (ev->key.ctrl && !strcmp(ev->key.sym, "y"))) {
             char *buf = ui_evloop_get_paste_buffer(ctx->loop);
             for(char *c=buf;*c;c++)
                if(*c == '\n') *c = ' ';
