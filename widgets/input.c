@@ -175,7 +175,7 @@ static void move_to_eol(struct ui_input *ctx) {
     ctx->sel.end = -1;
 }
 
-const char WORD_DELIMS[] = " -./";
+const char WORD_DELIMS[] = " -./!@#$%^&*()_+";
 #define INPCH(ctx, n) (ctx->input + utf8_idx(ctx->input, n))
 
 static void advance_word(struct ui_input *ctx) {
