@@ -5,16 +5,12 @@
 
 /* Obtain the physical boundaries of the active screen (assumes xinerama). */
 void x11_get_active_screen(Display *dpy, int *_x, int *_y, int *_width, int *_height) {
-    XWindowAttributes attr;
-    Window win;
+    Window win, *chld, *root;
     int n, x, y, _;
     XineramaScreenInfo *screens;
 
-    XGetInputFocus(dpy, &win, &_);
-    XGetWindowAttributes(dpy, win, &attr);
-
-    /* Obtain absolute window coorindates */
-    XTranslateCoordinates(dpy, win, attr.root, 0, 0,&x, &y, &win); 
+    /* Obtain absolute pointer coordinates */
+    XQueryPointer(dpy, DefaultRootWindow(dpy), &root, &chld, &x, &y, &_, &_, &_);
 
     screens = XineramaQueryScreens(dpy, &n);
     for (int i = 0; i < n; i++) {
