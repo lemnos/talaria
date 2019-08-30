@@ -38,7 +38,7 @@ static void draw(cairo_t *cr, void *_ctx) {
     if(ctx->cursor_pos == 0)
         xoff = 0;
     else {
-        const char *s = utf8_dup(ctx->input, ctx->cursor_pos);
+        char *s = utf8_dup(ctx->input, ctx->cursor_pos);
         curoff = cairo_text_box_width(cr,
                 ctx->fonts,
                 s,

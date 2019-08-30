@@ -9,7 +9,7 @@
 //sequences.
 
 //Return the byte index of the nth char
-int utf8_idx(const char *s, int n) {
+size_t utf8_idx(const char *s, int n) {
     const char *start = s;
 
     while(*s && n--) {
@@ -48,7 +48,7 @@ int utf8_read(const char *s, char c[5]) {
 }
 
 //Dupe the first n characters of s (or all of it if n == 0).
-const char* utf8_dup(const char *s, size_t n) {
+char* utf8_dup(const char *s, size_t n) {
     char *res;
     int idx = n ? utf8_idx(s, n) : strlen(s);
 
