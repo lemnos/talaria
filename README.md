@@ -8,14 +8,18 @@ delimeters.
 # Examples
 
 ```
-> xdg-open $(ls|talaria) # Produces a searchable list of items in the current directory and opens the selected ones.
+
+# Produces a searchable list of items in the current directory and opens the selected ones.
+
+> xdg-open $(ls|talaria) 
 
 # A (very) simple launcher which remembers the last item can be written like so:
 
-> eval $(echo $PATH|xargs -I{} -d: find {}|xargs basename -a|talaria -l /tmp/launcher.hist) 
+eval $(echo $PATH|xargs -I{} -d: find {}|xargs basename -a|talaria -l /tmp/launcher.hist) 
 
 # In reality you will probably want to write a proper script with error checking, but this 
 # gives you an idea of what can be done.
+
 ```
 
 The man page contains a more thorough description and a list of options.
