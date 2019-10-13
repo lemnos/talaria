@@ -348,7 +348,7 @@ static void on_select(struct ui_menu *_, int idx) {
     XFlush(dpy);
     write(1, sel, sz); //printf ignores \0 even when sz is specified.
     write(1, "\n", 1);
-    exit(1);
+    exit(0);
 }
 
 static void on_input_update(struct ui_input *inp, const char *input) {
