@@ -85,10 +85,14 @@ void *waiter(void *_) {
     return NULL;
 }
 
-void program_filter_init(const char *name) {
+void program_filter_init(const char *name, const char *interpreter) {
     struct termios ti;
     int fds[2];
     int master, slave;
+
+    interpreter = interpreter ? interpreter : " ";
+    char *cmd = malloc(strlen(name) + strlen(interpreter) + 2);
+    sprintf(cmd, "%s %s", interpreter, name);
 
     pipe(fds);
     in = fds[1];
@@ -122,7 +126,7 @@ void program_filter_init(const char *name) {
     cfmakeraw(&ti);
     tcsetattr(1, TCSANOW, &ti);
 
-    execl("/bin/sh", "/bin/sh", "-c", name, NULL);
+    execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
     close(out);
 }
 

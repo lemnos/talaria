@@ -81,7 +81,7 @@ static void set_cairo_font(cairo_t *cr, FcPattern *font, int height, cairo_font_
     if(_fe) *_fe = fe;
 }
 
-/* Number of width required by the characters drawn with the given fontset. */
+/* Width required by the characters drawn with the given fontset. */
 double cairo_text_box_width(cairo_t *cr, FcFontSet *fonts, const char *s, int height) {
     size_t w = CURSOR_WIDTH; //Init val == cursor width
     size_t idx = 0;

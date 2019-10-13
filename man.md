@@ -61,6 +61,10 @@ from STDIN is printed on STDOUT after the item has been selected.
 If the file is not empty (i.e from a previous invocation) its contents 
 are used to populate the menu history as well as item order.
 
+**-p** *program*
+: Specifies a program which communicates with talaria using STDIN/STDOUT using the protocol
+described in the SCRIPTING PROTOCOL section.
+
 **-v**
 : Prints version information.
 
@@ -89,3 +93,57 @@ dimension (where 0 is transparent and 255 is opaque).
 *menu_divider_height*: Height of the bar which separates menu items. \
 *menu_sel_background_color*: Background color of the selected menu item. \
 *menu_sel_foreground_color*: Foreground color of the selected menu item.
+
+# SCRIPTING PROTOCOL
+
+Talaria supports advanced scripting using a simple line based stdin/stdout protocol. A program consumes lines from
+standard input indicating how talaria should behave and produces the results on standard output to affect program behavior
+in real time. This allows programs and scripts to dictate menu items at run time using traditional streams without
+requiring complex socket manipulation or a dedicated library. The protocol is as follows
+
+1. A compliant script must begin by printing "TALARIA V1".
+2. The script must then consume lines of the following form
+
+  - FILTER:\<filter\>
+
+       Upon receipt of this the script must send a group of lines corresponding to menu items to STDOUT. This list
+   must be terminated by an empty line.
+
+  - SELECT:\<string\>
+
+       This corresponds to a menu selection by the user, the script should terminate after receiving this and 
+       performing the appropriate action
+
+All filtering, sorting and history is left to the script. Since users expect instantaneous behavior filtering should
+not take longer than a few miliseconds to reduce perceived latency.
+
+## Example
+
+A simple dictionary mike look like the following.
+
+```
+#!/usr/bin/python3
+
+import sys
+import os
+
+words = open('/etc/dictionaries-common/words', 'r').read().split('\n')
+
+print("TALARIA V1")
+while True:
+    typ,filt = sys.stdin.readline().strip().split(':', maxsplit=1)
+
+    sys.stdout.write('\n'.join(w for w in words if filt in w and w))
+    sys.stdout.write('\n\n')
+
+    sys.stdout.flush()
+```
+
+Alternatively talaria can be specified as the interpeter so the script can be launched directly using
+the -t flag along with the real interpreter like so:
+
+
+```
+#!/usr/bin/talaria -t python3
+<script body>
+```
