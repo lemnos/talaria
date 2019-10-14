@@ -85,14 +85,40 @@ void *waiter(void *_) {
     return NULL;
 }
 
-void program_filter_init(const char *name, const char *interpreter) {
+/* If part of the shebang (being run directly as a script), use the argument as the interpreter. */
+char *get_interpreter(const char *name) {
+    size_t n = 0;
+    char *line = NULL;
+    char *c;
+
+    FILE *fh = fopen(name, "r");
+
+    if(!fh) {
+        perror("fopen");
+        exit(1);
+    }
+    n = getline(&line, &n, fh);
+    fclose(fh);
+    line[n-1] = '\0';
+
+    c = line;
+    while(*c && *c != ' ')
+        c++;
+
+    *c = '\0';
+
+    if(strstr(line, "talaria")) return c+1;
+
+    free(line);
+    return NULL;
+}
+
+void program_filter_init(const char *name) {
     struct termios ti;
     int fds[2];
     int master, slave;
 
-    interpreter = interpreter ? interpreter : " ";
-    char *cmd = malloc(strlen(name) + strlen(interpreter) + 2);
-    sprintf(cmd, "%s %s", interpreter, name);
+    char *interpreter = get_interpreter(name);
 
     pipe(fds);
     in = fds[1];
@@ -126,7 +152,11 @@ void program_filter_init(const char *name, const char *interpreter) {
     cfmakeraw(&ti);
     tcsetattr(1, TCSANOW, &ti);
 
-    execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
+    if(interpreter) {
+        execl(interpreter, interpreter, name, NULL);
+    } else
+        execl(name, name, NULL);
+
     close(out);
 }
 

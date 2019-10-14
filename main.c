@@ -68,7 +68,6 @@ int force_selection_flag = 0;
 int input_only_flag = 0;
 int use_regex_flag = 0;
 char *generator_program = NULL;
-char *generator_program_interpreter = NULL;
 char *history_file = NULL;
 
 void print_version() {
@@ -202,8 +201,6 @@ static void init_opts(int argc, char *argv[]) {
     const char *optstr =  "f:d:x:y:w:h:u:b:mrivl:p:t:";
     for(char c=getopt(argc, argv, optstr);c!=-1;c=getopt(argc, argv, optstr)) {
         switch(c) {
-            case 't': generator_program_interpreter = optarg; break;
-            case 'p': generator_program = optarg; break;
             case 'v': print_version(); break;
             case 'd': delim = optarg[0]; break;
             case 'f': field = atoi(optarg); break;
@@ -221,13 +218,8 @@ static void init_opts(int argc, char *argv[]) {
         }
     }
 
-    if(generator_program_interpreter && !generator_program) {
-        if(optind == argc) {
-            fprintf(stderr, "A program must be specified with the -t flag.\n");
-            exit(-1);
-        }
-
-        generator_program = argv[optind];
+    if(optind != argc) {
+        generator_program = argv[argc-1];
     }
 }
 
@@ -510,7 +502,7 @@ int main(int argc, char *argv[]) {
     history_sz = read_history(&history);
 
     if(generator_program) {
-        program_filter_init(generator_program, generator_program_interpreter);
+        program_filter_init(generator_program);
         selection_fn = program_filter_select;
         filter_fn = program_filter_filter;
     } else if(input_only_flag) {

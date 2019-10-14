@@ -9,7 +9,7 @@ talaria - a simple line oriented X11 menu
 # SYNOPSIS 
 
 talaria [-d delim] [-f field] [-m] [-x xoff] [-y yoff] [-w width] [-h height] 
-[-u unit height] [-b border size] [-l history file] [-v] [-p generator program] 
+[-u unit height] [-b border size] [-l history file] [-v] [generator program]
 
 # DESCRIPTION
 
@@ -61,10 +61,6 @@ from STDIN is printed on STDOUT after the item has been selected.
 If the file is not empty (i.e from a previous invocation) its contents 
 are used to populate the menu history as well as item order.
 
-**-p** *program*
-: Specifies a program which communicates with talaria using STDIN/STDOUT using the protocol
-described in the SCRIPTING PROTOCOL section.
-
 **-v**
 : Prints version information.
 
@@ -96,10 +92,12 @@ dimension (where 0 is transparent and 255 is opaque).
 
 # SCRIPTING PROTOCOL
 
-Talaria supports advanced scripting using a simple line based stdin/stdout protocol. A program consumes lines from
-standard input indicating how talaria should behave and produces the results on standard output to affect program behavior
-in real time. This allows programs and scripts to dictate menu items at run time using traditional streams without
-requiring complex socket manipulation or a dedicated library. The protocol is as follows
+Talaria supports advanced scripting using a simple line based stdin/stdout
+protocol. A program consumes lines from standard input indicating how talaria
+should behave and produces the results on standard output to affect program
+behavior in real time. This allows programs and scripts to dictate menu items
+at run time using traditional streams without requiring complex socket
+manipulation or a dedicated library. The protocol is as follows
 
 1. A compliant script must begin by printing "TALARIA V1".
 2. The script must then consume lines of the following form
@@ -139,11 +137,12 @@ while True:
     sys.stdout.flush()
 ```
 
-Alternatively talaria can be specified as the interpeter so the script can be launched directly using
-the -t flag along with the real interpreter like so:
+The above can run by passing the script to talaria like so `talaria <dict.py>`
 
+Alternatively talaria can be specified as the interpeter itself so the script can be launched directly. To do this
+the real interpreter must be specified after talaria as below.
 
 ```
-#!/usr/bin/talaria -t python3
+#!/usr/bin/talaria /usr/bin/python3
 <script body>
 ```
