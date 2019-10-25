@@ -24,10 +24,36 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-//Functions assume valid UTF8 input. Primitives which should be thought of as
-//dangerous if the input is not santized (in the same way most string functions
-//are), but otherwise aim to be efficient ways of manipulating UTF8 byte
-//sequences.
+/* 
+ * Functions assume valid UTF8 input. Primitives should be thought of as
+ * dangerous if the input is not santized (in the same way most string functions
+ * are), but otherwise aim to be efficient ways of manipulating UTF8 byte
+ * sequences. 
+ */
+
+int utf8_is_valid(const unsigned char *s) {
+    while(*s) {
+        if((*s >> 5) == 0x6) {
+           if((s[1] >> 6) != 0x2) return 0;
+           s+=1;
+        } else if((*s >> 4) == 0xe) {
+           if((s[1] >> 6) != 0x2) return 0;
+           if((s[2] >> 6) != 0x2) return 0;
+           s+=2;
+        } else if((*s >> 3) == 0x1e) {
+           if((s[1] >> 6) != 0x2) return 0;
+           if((s[2] >> 6) != 0x2) return 0;
+           if((s[3] >> 6) != 0x2) return 0;
+           s+=3;
+        } else if ((*s >> 7) != 0) {
+            return 0;
+        }
+
+        s++;
+    }
+
+    return 1;
+}
 
 //Return the byte index of the nth char
 size_t utf8_idx(const char *s, int n) {

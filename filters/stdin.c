@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <regex.h>
+#include "../widgets/utf8.h"
 
 //Allow for embedded null characters.
 struct line {
@@ -131,9 +132,13 @@ void stdin_filter_init(char delim, int field, int regex, const char **olist, siz
 
     menu_items = malloc(sizeof(char*) * input_lines_sz);
 
-    for(size_t i = 0;i < input_lines_sz;i++)
+    for(size_t i = 0;i < input_lines_sz;i++) {
         menu_items[i] =
             extract_field(input_lines[i].bytes, input_lines[i].sz, delim, field);
+
+        if(!utf8_is_valid(menu_items[i]))
+            menu_items[i] = "<invalid utf8 sequence>";
+    }
 
     sort_menu_items(olist, olist_sz);
     regex_flag = regex;

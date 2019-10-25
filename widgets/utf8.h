@@ -28,5 +28,6 @@ int utf8_len(const char *s);
 int utf8_idx(const char *s, int n);
 char* utf8_dup(const char *s, int n);
 uint32_t utf8_ucs4(const char *_c);
+int utf8_is_valid(const char *s);
 
 #endif

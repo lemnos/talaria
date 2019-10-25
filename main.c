@@ -132,7 +132,7 @@ struct ui_color color_from_string(char *col) {
 
 Window create_unmanaged_window(Display *dpy, int x, int y, int w, int h) {
     Window win;
-    XSetWindowAttributes attr = {0};
+    XSetWindowAttributes attr = {.override_redirect = 1};
 
     win = XCreateWindow(dpy,
             DefaultRootWindow(dpy),
@@ -140,16 +140,8 @@ Window create_unmanaged_window(Display *dpy, int x, int y, int w, int h) {
             XDefaultDepth(dpy, DefaultScreen(dpy)),
             InputOutput,
             DefaultVisual(dpy, DefaultScreen(dpy)),
-            CopyFromParent,
-            &attr);
-
-    XSetWindowAttributes attributes = {0};
-    attributes.override_redirect = True;
-
-    XChangeWindowAttributes(dpy,
-            win,
             CWOverrideRedirect,
-            &attributes);
+            &attr);
 
     XMapWindow(dpy, win);
     XFlush(dpy);
