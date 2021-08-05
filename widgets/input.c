@@ -135,7 +135,7 @@ static void complete(struct ui_input *ctx) {
 
 static void history_up(struct ui_input *ctx) {
     if(!ctx->history_sz) return;
-    if(!ctx->last_key.alt || (
+    if(!ctx->last_key.meta || (
                 strcmp(ctx->last_key.sym, "<down>") &&
                 strcmp(ctx->last_key.sym, "<up>") &&
                 strcmp(ctx->last_key.sym, "n") &&
@@ -148,7 +148,7 @@ static void history_up(struct ui_input *ctx) {
 
 static void history_down(struct ui_input *ctx) {
     if(!ctx->history_sz) return;
-    if(!ctx->last_key.alt || (
+    if(!ctx->last_key.meta || (
                 strcmp(ctx->last_key.sym, "<down>") &&
                 strcmp(ctx->last_key.sym, "<up>") &&
                 strcmp(ctx->last_key.sym, "n") &&
@@ -305,7 +305,7 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
             set_input(ctx, "");
         } else if(ev->key.ctrl && !strcmp(ev->key.sym, "e")) {
             move_to_eol(ctx);
-        } else if((ev->key.ctrl || ev->key.alt) && (!strcmp(ev->key.sym, "\x08") || !strcmp(ev->key.sym, "w"))) {
+        } else if((ev->key.ctrl || ev->key.meta) && (!strcmp(ev->key.sym, "\x08") || !strcmp(ev->key.sym, "w"))) {
             delete_word_backward(ctx);
         } else if(!strcmp(ev->key.sym, "\x08")) { //Backspace
             if(ctx->sel.end != -1)
@@ -318,9 +318,9 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
         else if(ev->key.ctrl && ev->key.shift &&
                 !strcmp(ev->key.sym, "<right>"))
             select_next_word(ctx);
-        else if((ev->key.alt && !strcmp(ev->key.sym, "b")) || (ev->key.ctrl && !strcmp(ev->key.sym, "<left>")))
+        else if((ev->key.meta && !strcmp(ev->key.sym, "b")) || (ev->key.ctrl && !strcmp(ev->key.sym, "<left>")))
             retreat_word(ctx);
-        else if((ev->key.alt && !strcmp(ev->key.sym, "f")) || (ev->key.ctrl && !strcmp(ev->key.sym, "<right>")))
+        else if((ev->key.meta && !strcmp(ev->key.sym, "f")) || (ev->key.ctrl && !strcmp(ev->key.sym, "<right>")))
             advance_word(ctx);
         else if((ev->key.ctrl && !strcmp(ev->key.sym, "f")) || !strcmp(ev->key.sym, "<right>"))
             if(ctx->sel.start != -1) {
@@ -336,9 +336,9 @@ static int handle_event(void *_ctx, struct ui_event *ev) {
                 ctx->sel.end = -1;
             } else
                 retreat_char(ctx);
-        else if(ev->key.alt && (!strcmp(ev->key.sym, "<up>") || !strcmp(ev->key.sym, "p")))
+        else if(ev->key.meta && (!strcmp(ev->key.sym, "<up>") || !strcmp(ev->key.sym, "p")))
             history_up(ctx);
-        else if(ev->key.alt && (!strcmp(ev->key.sym, "<down>") || !strcmp(ev->key.sym, "n")))
+        else if(ev->key.meta && (!strcmp(ev->key.sym, "<down>") || !strcmp(ev->key.sym, "n")))
             history_down(ctx);
         else if(!strcmp(ev->key.sym, "<page_up>") ||
                 !strcmp(ev->key.sym, "<page_down>") ||

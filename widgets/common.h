@@ -49,6 +49,7 @@ struct ui_event {
         int ctrl;
         int alt;
         int shift;
+        int meta;
     } key;
     cairo_t *cr;
 };
